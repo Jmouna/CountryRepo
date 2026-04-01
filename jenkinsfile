@@ -10,35 +10,28 @@ pipeline {
                     git branch: 'master', url: 'https://github.com/Jmouna/CountryRepo.git'
                 }
             }
-            stage('Compile code') 
+            stage('Build maven') 
             {
                 steps {
-                    sh 'mvn compile'
+                    sh 'mvn clean install'
                 }
             }
-            stage('Test code') 
+            stage('Build Dockerfile ')
             {
                 steps {
-                    sh 'mvn test '
+                    sh 'docker build . -t my-country-service:$BUILD_NUMBER '
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                    sh 'docker login -u jmouna -p ${dockerhubpwd}'
                 }
-                post{
-                    success {
-                        junit allowEmptyResults: true, testResults: '**/target/surfire-reports/*.xml'
-                    }
-                }
+                    sh 'docker tag my-country-service:$BUILD_NUMBER jmouna/my-country-service:$BUILD_NUMBER'
+                    sh 'docker push jmouna/my-country-service:$BUILD_NUMBER'
             }
-            stage('SonarQube Analysis')
+        }
+            stage('Deploy microservice') 
             {
-                steps {
-                        withSonarQubeEnv(installationName: 'MySonarQubeServer', credentialsId: 'sonarqubePWD') {
-                            sh "mvn sonar:sonar -Dsonar.projectKey=country-service -Dsonar.projectName=country-service"
-                        }
-                       }
-            }
-            stage('Package code') 
-            {
-                steps {
-                    sh 'mvn package '
+                 steps {
+                    sh 'docker rm -f $(docker ps -aq)'
+                    sh 'docker run -d -p 8082:8082 my-country-service:$BUILD_NUMBER'
                 }
             }
         }
