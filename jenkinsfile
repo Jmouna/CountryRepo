@@ -20,7 +20,7 @@ pipeline {
             {
                 steps {
                     sh 'docker build . -t my-country-service:$BUILD_NUMBER '
-                    withCredentials([string(credentialsId: 'dockerhub-password', variable: 'dockerhubpwd')]){
+                    withCredentials([string(credentialsId: 'dockerhubpass', variable: 'dockerhubpwd')]){
                     sh 'docker login -u jmouna -p ${dockerhubpwd}'
                 }
                     sh 'docker tag my-country-service:$BUILD_NUMBER jmouna/my-country-service:$BUILD_NUMBER'
