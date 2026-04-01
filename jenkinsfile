@@ -30,8 +30,10 @@ pipeline {
             stage('Deploy microservice') 
             {
                  steps {
-                    sh 'docker rm -f $(docker ps -aq)'
-                    sh 'docker run -d -p 8082:8082 my-country-service:$BUILD_NUMBER'
+                    sh '''
+                        docker rm -f country-service || true
+                        docker run -d -p 8082:8082 --name country-service my-country-service:$BUILD_NUMBER
+                 '''
                 }
             }
         }
