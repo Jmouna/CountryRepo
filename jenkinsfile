@@ -27,13 +27,16 @@ pipeline {
                     sh 'docker push jmouna/my-country-service:$BUILD_NUMBER'
             }
         }
-            stage('Deploy microservice') 
+            stage('Deploy to kubernetes') 
             {
                  steps {
-                    sh '''
-                        docker rm -f country-service || true
-                        docker run -d -p 8082:8082 --name country-service my-country-service:$BUILD_NUMBER
-                 '''
+                   script {
+                        kubeconfig(credentialsId: 'kubeconfigFile', serverUrl: '') {
+                         sh 'kubectl apply -f deployment.yaml'
+                         sh 'kubectl apply -f service.yaml'
+                        }
+                        
+                        }
                 }
             }
         }
