@@ -26,6 +26,12 @@ pipeline {
                 }
             }
         }
+stage('Test Service') {
+    steps {
+        sh 'kubectl get svc -n jenkins'
+        sh 'kubectl get pods -n jenkins'
+    }
+}
     }
 
     post {
@@ -40,10 +46,5 @@ pipeline {
             echo 'Ansible playbook execution failed'
         }
     }
-stage('Test Service') {
-    steps {
-        sh 'kubectl get svc -n jenkins'
-        sh 'kubectl get pods -n jenkins'
-    }
-}
+
 }
