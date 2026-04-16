@@ -1,43 +1,43 @@
 pipeline {
-        agent any
-        tools {
-            maven 'M2_HOME'
-        }
-        stages {
-            stage('Checkout code') 
-            {
-                steps {
-                    git branch: 'master', url: 'https://github.com/Jmouna/CountryRepo.git'
-                }
-            }
-            stage('Build maven') 
-            {
-                steps {
-                    sh 'mvn clean install'
-                }
-            }
-            stage('Build Dockerfile ')
-            {
-                steps {
-                    sh 'docker build . -t my-country-service:$BUILD_NUMBER '
-                    withCredentials([string(credentialsId: 'dockerhubpass', variable: 'dockerhubpwd')]){
-                    sh 'docker login -u jmouna -p ${dockerhubpwd}'
-                }
-                    sh 'docker tag my-country-service:$BUILD_NUMBER jmouna/my-country-service:$BUILD_NUMBER'
-                    sh 'docker push jmouna/my-country-service:$BUILD_NUMBER'
+    agent any
+
+    tools {
+        maven 'M2_HOME'
+    }
+
+    stages {
+
+        stage('Checkout code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/Jmouna/CountryRepo.git'
             }
         }
-            stage('Deploy to kubernetes') 
-            {
-                 steps {
-                   script {
-                        kubeconfig(credentialsId: 'kubeconfigFile', serverUrl: '') {
-                         sh 'kubectl apply -f deployment.yaml'
-                         sh 'kubectl apply -f service.yaml'
-                        }
-                        
-                        }
+
+        stage('Build maven') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('Deploy using Ansible playbook') {
+            steps {
+                script {
+                    sh 'ansible-playbook -i hosts playbookCICD.yml --check'
                 }
             }
         }
     }
+
+    post {
+        always {
+            // Clean up or perform post-build actions
+            cleanWs()
+        }
+        success {
+            echo 'Ansible playbook executed successfully'
+        }
+        failure {
+            echo 'Ansible playbook execution failed'
+        }
+    }
+}
