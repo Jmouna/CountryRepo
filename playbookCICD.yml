@@ -17,14 +17,14 @@
         password: "{{ docker_registry_password }}"
         reauthorize: yes
 
-    - name: Build Docker image
-      docker_image:
-        name: "{{ docker_registry_username }}/{{ image_name }}"
-        tag: "{{ image_tag }}"
-        build:
-          path: "{{ dockerfile_path }}"
-        source: build
-        state: present
+- name: Build Docker image
+  docker_image:
+    name: "{{ docker_registry_username }}/{{ image_name }}"
+    tag: "{{ image_tag }}"
+    build:
+      path: "{{ dockerfile_path }}"
+    source: build
+    state: present
 
     - name: Push the Docker image to Docker Hub
       docker_image:
