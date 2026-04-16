@@ -28,8 +28,13 @@ pipeline {
         }
 stage('Test Service') {
     steps {
-        sh 'kubectl get svc -n jenkins'
-        sh 'kubectl get pods -n jenkins'
+        script {
+            sh '''
+            export KUBECONFIG=config
+            kubectl get pods -n jenkins
+            kubectl get svc -n jenkins
+            '''
+        }
     }
 }
     }
